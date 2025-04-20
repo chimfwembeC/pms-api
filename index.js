@@ -43,8 +43,6 @@ app.use('/api/users', userRoutes);
 // --------------------
 const db = require('./models');
 const User = db.User;
-const Project = db.Project;
-const Task = db.Task;
 
 db.sequelize.sync().then(() => {
   console.log('✅ Database synced');

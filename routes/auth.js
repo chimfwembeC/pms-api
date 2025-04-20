@@ -5,8 +5,7 @@ const router = express.Router();
 const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const path = require('path');
-// const multer = require('multer');
-// const Busboy = require('busboy');
+const Busboy = require('busboy');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const db = require('../models');
@@ -14,23 +13,12 @@ const User = db.User;
 const {authenticateToken,generateToken }= require('../middleware/auth');
 require('dotenv').config();
 
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, 'uploads/users/profiles/')
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, Date.now() + '-' + file.originalName);
-//   }
-// });
-
-// const upload = multer({storage});
 
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;  
 
   try {
-    const existingUser = await User.findOne({ where: { email } });
-    // res.status(201).json({ message: req.body });
+    const existingUser = await User.findOne({ where: { email } });    
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -43,7 +31,7 @@ router.post('/register', async (req, res) => {
       password: hashedPassword,      
     });
 
-    // const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  
     const token = generateToken(newUser.id);
 
     res.status(201).json({ message: 'User registered successfully', token });
@@ -67,8 +55,7 @@ router.post('/login', async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
-
-    // const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1h' });
+    
     const token = generateToken(user.id);
 
     res.json({ message: 'Login successful', token });
@@ -96,17 +83,17 @@ router.put('/update-profile',authenticateToken,async (req, res) => {
       return res.status(404).json({message: "User Not Found"});      
     }
 
-    // busboy.on('file', (fieldname, file, filename) => {
-    //   upload_path = path.join(__dirname, 'uploads/profiles/', Date.now() + '-' + filename);
-    //   const fstream = fs.createWriteStream(upload_path);
-    //   file.pipe(fstream);
-    // });
+    busboy.on('file', (fieldname, file, filename) => {
+      upload_path = path.join(__dirname, 'uploads/profiles/', Date.now() + '-' + filename);
+      const fstream = fs.createWriteStream(upload_path);
+      file.pipe(fstream);
+    });
 
-    // busboy.on('finish',() => {
-    //   res.status(200).json({message: "profile picture updated", path: upload_path});
-    // });
+    busboy.on('finish',() => {
+      res.status(200).json({message: "profile picture updated", path: upload_path});
+    });
 
-    // req.pipe(busboy);
+    req.pipe(busboy);
 
     await user.update({name, email, bio, profile_path});
     res.json({message: "profile updated", user:user});
