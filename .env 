@@ -1,0 +1,5 @@
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=project_management_development
+JWT_SECRET=34399554c6be2dc9a784fb89b81829a5859ca449e8bbe407dd24e3c2480b4897
