@@ -125,7 +125,7 @@ project/
 ### Installation
 
 ```bash
-git clone https://github.com/yourusername/pms-api.git
+git clone https://github.com/chimfwembeC/pms-api.git
 cd pms-api
 npm install
 ```
