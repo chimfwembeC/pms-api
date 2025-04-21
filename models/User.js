@@ -16,6 +16,9 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'assignedTo',  
         as: "tasks"    
       });
+
+      User.hasMany(models.Message, { as: "sentMessages", foreignKey: "senderId" });
+      User.hasMany(models.Message, { as: "receivedMessages", foreignKey: "receiverId" });
     }
   }
 

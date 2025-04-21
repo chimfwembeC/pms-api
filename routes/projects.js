@@ -72,14 +72,11 @@ router.get("/:id", authenticateToken, async (req, res) => {
 router.post("/", authenticateToken, async (req, res) => {
   // const { title, description, createdBy, createdAt, updatedAt } = req.body;
   try {
-    const newProject = await Project.create(req.body);
-    // {
-    //   title: title,
-    //   description: description,
-    //   createdBy: createdBy,
-    //   createdAt: createdAt,
-    //   updatedAt: updatedAt,
-    // }
+    const newProject = await Project.create({
+      ...req.body,
+      createdBy: req.user.id, // 👈 Set from authenticated user
+    });
+ 
     res.status(201).json(newProject);
   } catch (err) {
     res.status(400).json({ message: err.message });

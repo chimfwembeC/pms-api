@@ -29,6 +29,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      profile_path: {
+        allowNull: true,
+        type: Sequelize.STRING
+      },
+      is_active: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN
+      },
       role: {
         type: Sequelize.ENUM('admin', 'user'),
         allowNull: false,
@@ -37,7 +45,7 @@ module.exports = {
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
-      },
+      },   
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE

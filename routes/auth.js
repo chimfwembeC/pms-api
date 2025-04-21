@@ -10,15 +10,19 @@ const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const db = require('../models');
 const User = db.User;
-const {authenticateToken,generateToken }= require('../middleware/auth');
+const { authenticateToken, generateToken } = require('../middleware/auth');
 require('dotenv').config();
-
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
 
 router.post('/register', async (req, res) => {
-  const { username, email, password } = req.body;  
+  const { username, email, password } = req.body;
 
   try {
-    const existingUser = await User.findOne({ where: { email } });    
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -28,15 +32,15 @@ router.post('/register', async (req, res) => {
     const newUser = await User.create({
       username: username,
       email: email,
-      password: hashedPassword,      
+      password: hashedPassword,
     });
 
-  
+
     const token = generateToken(newUser.id);
 
     res.status(201).json({ message: 'User registered successfully', token });
   } catch (err) {
-    console.error('Error during registration:', err.message);    
+    console.error('Error during registration:', err.message);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
@@ -45,6 +49,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
+  // console.log('email', email);
   try {
     const user = await User.findOne({ where: { email } });
     if (!user) {
@@ -55,54 +60,57 @@ router.post('/login', async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
-    
+
     const token = generateToken(user.id);
 
-    res.json({ message: 'Login successful', token });
+    res.json({ message: 'Login successful', token, 'user': user });
   } catch (err) {
     console.error('Error during login:', err.message);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
-// router.put('/update-profile',authenticateToken, upload.single('profile_path'),async (req, res) => {
-router.put('/update-profile',authenticateToken,async (req, res) => {
-  try {
-    const busboy = new Busboy({headers: req.headers});
-    let upload_path = '';
+router.put('/update-profile', authenticateToken, async (req, res) => {
+  const bb = Busboy({ headers: req.headers });
+  const formData = {};
+  let filePath = '';
 
-    
+  bb.on('file', (fieldname, file, info) => {
+    const { filename } = info;
+    const saveTo = path.join(uploadsDir, `${Date.now()}-${filename}`);
+    filePath = `/uploads/${path.basename(saveTo)}`;
+    file.pipe(fs.createWriteStream(saveTo));
+  });
 
-    const userId = req.userId;
-    const {name, email, bio,profile_path} = req.body;
-    // console.log(req);
-    const user = await User.findByPk(userId);
-    // const user = await User.findOne({where: {email: req.email}});
+  bb.on('field', (fieldname, val) => {
+    formData[fieldname] = val;
+  });
 
+  bb.on('finish', async () => {
+    try {
+      const userId = formData.userId;
+      if (!userId) return res.status(400).json({ message: 'Missing userId' });
 
-    if(!user){
-      return res.status(404).json({message: "User Not Found"});      
+      const user = await User.findByPk(userId);
+      if (!user) return res.status(404).json({ message: 'User not found' });
+
+      // Hash password if being updated
+      if (formData.password) {
+        formData.password = await bcrypt.hash(formData.password, 10);
+      }
+
+      if (filePath) {
+        formData.profile_path = filePath;
+      }
+
+      await user.update(formData);
+      res.json(user);
+    } catch (err) {
+      console.error('Update error:', err);
+      res.status(400).json({ message: err.message });
     }
+  });
 
-    busboy.on('file', (fieldname, file, filename) => {
-      upload_path = path.join(__dirname, 'uploads/profiles/', Date.now() + '-' + filename);
-      const fstream = fs.createWriteStream(upload_path);
-      file.pipe(fstream);
-    });
-
-    busboy.on('finish',() => {
-      res.status(200).json({message: "profile picture updated", path: upload_path});
-    });
-
-    req.pipe(busboy);
-
-    await user.update({name, email, bio, profile_path});
-    res.json({message: "profile updated", user:user});
-
-
-  } catch (error) {
-      console.error("profile fetching error", error);
-      return res.status(500).json({message: "Internal server error:", error});          
-  }
+  req.pipe(bb);
 });
 
 module.exports = router;

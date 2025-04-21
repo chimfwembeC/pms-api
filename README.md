@@ -151,15 +151,23 @@ Update `config/config.json` to reflect your database settings.
 
 ## 🔧 Commands
 
+### Install Dependancies
+
+```bash
+npm install
+```
+
 ### Run Server
 
 ```bash
-npm start
+node index.js
 ```
 
-### Run Migrations
+### Run Migrations and create database
 
 ```bash
+npx sequelize db:create
+
 npx sequelize-cli db:migrate
 ```
 

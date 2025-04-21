@@ -1,5 +1,3 @@
-// seeders/YYYYMMDDHHMMSS-demo-users.js
-
 'use strict';
 const bcrypt = require('bcrypt');
 
@@ -13,6 +11,7 @@ module.exports = {
         email: 'user@example.com',
         role: 'user',
         bio: "",
+        is_active: true,
         profile_path: "",
         password: hashedPassword,
         createdAt: new Date(),
@@ -23,6 +22,7 @@ module.exports = {
         email: 'admin@example.com',
         role: 'admin',
         bio: "",
+        is_active: false,
         profile_path: "",
         password: hashedPassword,
         createdAt: new Date(),

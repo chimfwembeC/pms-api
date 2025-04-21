@@ -35,14 +35,18 @@ module.exports = {
           key: 'id'
         }
       },
+      completed: {
+        type: Sequelize.BOOLEAN,      
+        defaultValue: false,
+      },   
       assignedTo: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: 'Users', // references the Users table
           key: 'id'
         }
-      },
+      },            
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

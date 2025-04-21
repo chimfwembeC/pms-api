@@ -1,5 +1,3 @@
-// seeders/YYYYMMDDHHMMSS-demo-tasks.js
-
 'use strict';
 
 module.exports = {
